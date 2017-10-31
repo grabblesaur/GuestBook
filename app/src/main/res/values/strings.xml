@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">GuestBook</string>
+    <string name="not_device_owner">This app has not been given Device Owner privileges to ...</string>
+</resources>
