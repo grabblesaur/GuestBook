@@ -18,6 +18,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 import butterknife.BindView;
@@ -63,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements DialogUnlock.Dial
 
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+        mWebView.setWebViewClient(new WebViewClient());
         mWebView.loadUrl("http://elchenkov.ru/ozk/anketa.php?hash_p=fdq1");
 
         // set default cosu policy
