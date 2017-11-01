@@ -8,26 +8,30 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.BatteryManager;
+import android.os.Bundle;
 import android.os.UserManager;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.view.View;
+import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.widget.Button;
 import android.widget.Toast;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements DialogUnlock.DialogUnlockListener {
 
     public static final String MAIN_ACTIVITY_KEY = MainActivity.class.getName();
     public static final int FROM_MAIN_ACTIVITY = 1;
 
-    @BindView(R.id.ma_unlock_btn)
-    Button mUnlockButton;
+    private static final String TAG = MainActivity.class.getName();
+
+    @BindView(R.id.ma_toolbar)
+    Toolbar mToolbar;
     @BindView(R.id.ma_web_view)
     WebView mWebView;
 
@@ -55,23 +59,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initViews() {
+        setUpToolbar(mToolbar);
+
+        mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
         mWebView.loadUrl("http://elchenkov.ru/ozk/anketa.php?hash_p=fdq1");
-
-        mUnlockButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-                if (am.getLockTaskModeState() == ActivityManager.LOCK_TASK_MODE_LOCKED) {
-                    stopLockTask();
-                }
-                setDefaultCosuPolicies(false);
-                Intent intent = new Intent(MainActivity.this, NotLockedActivity.class);
-                intent.putExtra(MAIN_ACTIVITY_KEY, FROM_MAIN_ACTIVITY);
-                startActivity(intent);
-                finish();
-            }
-        });
 
         // set default cosu policy
         mAdminComponentName = DeviceAdminReceiver.getComponentName(this);
@@ -143,5 +135,43 @@ public class MainActivity extends AppCompatActivity {
                     Settings.Global.STAY_ON_WHILE_PLUGGED_IN,
                     "0");
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_activity_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.menu_stop_lock_task) {
+            DialogUnlock dialogUnlock = new DialogUnlock();
+            dialogUnlock.setListener(this);
+            dialogUnlock.show(getSupportFragmentManager(), DialogUnlock.class.getName());
+        }
+        return false;
+    }
+
+    public void setUpToolbar(Toolbar toolbar) {
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        getSupportActionBar().setHomeButtonEnabled(false);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setTitle("");
+    }
+
+    @Override
+    public void onPasswordSuccess() {
+        Log.i(TAG, "onPasswordSuccess: ");
+        ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        if (am.getLockTaskModeState() == ActivityManager.LOCK_TASK_MODE_LOCKED) {
+            stopLockTask();
+        }
+        setDefaultCosuPolicies(false);
+        Intent intent = new Intent(MainActivity.this, NotLockedActivity.class);
+        intent.putExtra(MAIN_ACTIVITY_KEY, FROM_MAIN_ACTIVITY);
+        startActivity(intent);
+        finish();
     }
 }

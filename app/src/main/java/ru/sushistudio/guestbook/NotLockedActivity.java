@@ -7,14 +7,19 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
+
+import java.io.File;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class NotLockedActivity extends AppCompatActivity {
+
+    private static final String TAG = NotLockedActivity.class.getName();
 
     @BindView(R.id.nla_start_btn)
     Button mStartKioskModeButton;
@@ -28,6 +33,7 @@ public class NotLockedActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_not_locked);
         ButterKnife.bind(this);
+        deleteCache(this);
         initViews();
     }
 
@@ -63,6 +69,33 @@ public class NotLockedActivity extends AppCompatActivity {
                     new ComponentName(getApplicationContext(), MainActivity.class),
                     PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
                     PackageManager.DONT_KILL_APP);
+        }
+    }
+
+    public static void deleteCache(Context context) {
+        try {
+            File dir = context.getCacheDir();
+            boolean result = deleteDir(dir);
+            Log.i(TAG, "deleteCache: " + result);
+        } catch (Exception e) {
+            Log.e(TAG, "deleteCache: " + e.getMessage());
+        }
+    }
+
+    public static boolean deleteDir(File dir) {
+        if (dir != null && dir.isDirectory()) {
+            String[] children = dir.list();
+            for (int i = 0; i < children.length; i++) {
+                boolean success = deleteDir(new File(dir, children[i]));
+                if (!success) {
+                    return false;
+                }
+            }
+            return dir.delete();
+        } else if(dir!= null && dir.isFile()) {
+            return dir.delete();
+        } else {
+            return false;
         }
     }
 }

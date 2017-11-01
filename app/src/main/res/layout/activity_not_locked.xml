@@ -9,10 +9,12 @@
 
     <Button
         android:id="@+id/nla_start_btn"
+        android:gravity="center"
+        android:drawableEnd="@drawable/ic_lock_outline_24dp"
+        android:drawablePadding="16dp"
         android:padding="50dp"
-        android:textSize="32sp"
+        android:textSize="24sp"
         android:layout_gravity="center"
-        style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
         android:text="start kiosk mode"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
