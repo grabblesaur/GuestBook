@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.UserManager;
@@ -39,6 +40,7 @@ public class MainActivity extends AppCompatActivity implements DialogUnlock.Dial
     private DevicePolicyManager mDevicePolicyManager;
     private ComponentName mAdminComponentName;
     private PackageManager mPackageManager;
+    private WifiReceiver mWifiReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,11 +63,21 @@ public class MainActivity extends AppCompatActivity implements DialogUnlock.Dial
 
     private void initViews() {
         setUpToolbar(mToolbar);
+        setUpWebView();
 
-        mWebView.getSettings().setJavaScriptEnabled(true);
-        mWebView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
-        mWebView.setWebViewClient(new WebViewClient());
-        mWebView.loadUrl("http://elchenkov.ru/ozk/anketa.php?hash_p=fdq1");
+        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        boolean isWifiEnabled = (wifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED
+                || wifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLING);
+        WifiHelper.setWifiListener(new WifiHelper.WifiConnectionChange() {
+            @Override
+            public void wifiConnected(boolean connected) {
+                if (connected) {
+                    setUpWebView();
+                } else {
+                    Toast.makeText(MainActivity.this, "Проверьте ваше интернет соединение", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
         // set default cosu policy
         mAdminComponentName = DeviceAdminReceiver.getComponentName(this);
@@ -155,7 +167,14 @@ public class MainActivity extends AppCompatActivity implements DialogUnlock.Dial
         return false;
     }
 
-    public void setUpToolbar(Toolbar toolbar) {
+    private void setUpWebView() {
+        mWebView.getSettings().setJavaScriptEnabled(true);
+        mWebView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+        mWebView.setWebViewClient(new WebViewClient());
+        mWebView.loadUrl("http://elchenkov.ru/ozk/anketa.php?hash_p=fdq1");
+    }
+
+    private void setUpToolbar(Toolbar toolbar) {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         getSupportActionBar().setHomeButtonEnabled(false);
